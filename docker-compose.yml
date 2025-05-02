@@ -12,6 +12,12 @@ volumes:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
 
+networks:
+  default:
+    name: localai_default
+  supabase:
+    name: localai_supabase
+
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
   environment:
@@ -273,7 +279,8 @@ services:
     ports:
       - 127.0.0.1:5433:5432
     volumes:
-      - langfuse_postgres_data:/var/lib/postgresql/data              
+      - langfuse_postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     container_name: redis
@@ -298,6 +305,21 @@ services:
       interval: 3s
       timeout: 10s
       retries: 10        
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - default
+      - supabase
+    depends_on:
+      - postgres
 
   searxng:
     container_name: searxng
@@ -364,3 +386,15 @@ services:
     image: ollama/ollama:rocm
     depends_on:
      - ollama-gpu-amd
+
+  db-init:
+    image: postgres:${POSTGRES_VERSION:-latest}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      bash -c "sleep 5 && psql -h postgres -U postgres -d postgres -f /docker-entrypoint-initdb.d/init.sql"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -63,6 +63,8 @@ def start_supabase():
     run_command([
         "docker", "compose", "-p", "localai", "-f", "supabase/docker/docker-compose.yml", "up", "-d"
     ])
+    # Wait for networks to be created
+    time.sleep(5)
 
 def start_local_ai(profile=None):
     """Start the local AI services (using its compose file)."""
