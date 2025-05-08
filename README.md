@@ -1,5 +1,19 @@
 # Self-hosted AI Package
 
+see accompanying video for V3: https://www.youtube.com/watch?v=T2QWhXpnT5I
+(The ULTIMATE n8n RAG AI Agent Template - Local AI Edition)
+This one has the OpenAI configuration pointing to ollama model with larger context.
+The configuration is around minutes 25 in video.
+Base URL: http://host.docker.internal:11434/v1
+API KEY: any characters
+
+see https://www.youtube.com/watch?v=E2GIZrsDvuM
+Use Open WebUI with Your N8N AI Agents - Voice Chat Included!
+
+
+see accompanying video for V2 (Supabase): https://www.youtube.com/watch?v=pOsO40HSbOo
+(Run Supabase 100% LOCALLY for Your AI Agents)
+
 **Self-hosted AI Package** is an open, docker compose template that
 quickly bootstraps a fully featured Local AI and Low Code development
 environment including Ollama for your local LLMs, Open WebUI for an interface to chat with your N8N agents, and Supabase for your database, vector store, and authentication. 
@@ -188,6 +202,11 @@ Additionally, after you see "Editor is now accessible via: http://localhost:5678
 1. Head to http://localhost:5678/home/credentials
 2. Click on "Local Ollama service"
 3. Change the base URL to "http://host.docker.internal:11434/"
+4. Go to http://localhost:5678/home/credentials
+5. Click on "Supabase account"
+6. Set Host to "http://host.docker.internal:8000"
+7. Set "Service Role Secret" to contents of SERVICE_ROLE_KEY in .env
+8. 
 
 ### For everyone else
 
@@ -232,7 +251,8 @@ to get started.
    <http://localhost:5678/workflow/vTN9y2dLXqTiDfPT>
 3. Create credentials for every service:
    
-   Ollama URL: http://ollama:11434
+   Ollama URL: http://host.docker.internal:11434 
+               (http://ollama:11434 if running ollama in docker container)
 
    Postgres (through Supabase): use DB, username, and password from .env. IMPORTANT: Host is 'db'
    Since that is the name of the service running Supabase
