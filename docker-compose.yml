@@ -11,6 +11,9 @@ volumes:
   langfuse_clickhouse_data:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
+  twenty_data:
+  twenty_docker_data:
+  twenty_server_local_data:
 
 networks:
   default:
@@ -133,6 +136,7 @@ services:
       - SUPABASE_HOSTNAME=${SUPABASE_HOSTNAME:-":8005"}
       - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME:-":8006"}
       - LANGFUSE_HOSTNAME=${LANGFUSE_HOSTNAME:-":8007"}
+      - TWENTY_HOSTNAME=${TWENTY_HOSTNAME:-":8008"}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-internal}
     cap_drop:
       - ALL
@@ -265,7 +269,7 @@ services:
       start_period: 1s
 
   postgres:
-    image: postgres:${POSTGRES_VERSION:-latest}
+    image: postgres:15
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -388,7 +392,7 @@ services:
      - ollama-gpu-amd
 
   db-init:
-    image: postgres:${POSTGRES_VERSION:-latest}
+    image: postgres:15
     depends_on:
       postgres:
         condition: service_healthy
@@ -398,3 +402,59 @@ services:
       bash -c "sleep 5 && psql -h postgres -U postgres -d postgres -f /docker-entrypoint-initdb.d/init.sql"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  twenty-change-vol-ownership:
+    image: ubuntu
+    user: root
+    volumes:
+      - twenty_server_local_data:/tmp/server-local-data
+      - twenty_docker_data:/tmp/docker-data
+    command: >
+      bash -c "
+      chown -R 1000:1000 /tmp/server-local-data
+      && chown -R 1000:1000 /tmp/docker-data"
+
+  twenty-server:
+    image: twentycrm/twenty:${TAG:-latest}
+    volumes:
+      - twenty_server_local_data:/app/packages/twenty-server/${STORAGE_LOCAL_PATH:-.local-storage}
+      - twenty_docker_data:/app/docker-data
+    ports:
+      - "3003:3000"
+    environment:
+      NODE_PORT: 3000
+      PG_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/default
+      SERVER_URL: ${SERVER_URL:-http://localhost:3003}
+      REDIS_URL: redis://redis:6379
+      STORAGE_TYPE: local
+      APP_SECRET: ${APP_SECRET:-replace_me_with_a_random_string}
+    depends_on:
+      twenty-change-vol-ownership:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:3000/healthz
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: always
+
+  twenty-worker:
+    image: twentycrm/twenty:${TAG:-latest}
+    volumes:
+      - twenty_server_local_data:/app/packages/twenty-server/${STORAGE_LOCAL_PATH:-.local-storage}
+    command: ["yarn", "worker:prod"]
+    environment:
+      PG_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/default
+      SERVER_URL: ${SERVER_URL:-http://localhost:3003}
+      REDIS_URL: redis://redis:6379
+      DISABLE_DB_MIGRATIONS: "true"
+      STORAGE_TYPE: local
+      APP_SECRET: ${APP_SECRET:-replace_me_with_a_random_string}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      twenty-server:
+        condition: service_healthy
+    restart: always
