@@ -473,7 +473,17 @@ services:
     image: twentycrm/twenty:${TAG:-latest}
     volumes:
       - twenty_server_local_data:/app/packages/twenty-server/${STORAGE_LOCAL_PATH:-.local-storage}
-    command: ["yarn", "worker:prod"]
+    command: >
+      bash -c "
+      yarn worker:prod &
+      yarn command:prod cron:messaging:messages-import &
+      yarn command:prod cron:messaging:message-list-fetch &
+      yarn command:prod cron:calendar-event-list-fetch &
+      yarn command:prod cron:calendar-events-import &
+      yarn command:prod cron:messaging:ongoing-stale &
+      yarn command:prod cron:ongoing-stale &
+      yarn command:prod cron:workflow:automated-cron-trigger &
+      wait"
     environment:
       PG_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/default
       SERVER_URL: ${SERVER_URL:-http://localhost:3003}
