@@ -1,5 +1,6 @@
 .env
 .env.test
+**.env
 volumes/
 shared/
 supabase/
