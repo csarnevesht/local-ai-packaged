@@ -113,7 +113,8 @@ services:
       -c "
       mkdir -p /home/node/.n8n/nodes &&
       cd /home/node/.n8n/nodes &&
-      npm i n8n-nodes-twenty &&
+      wget https://github.com/csarnevesht/n8n-nodes-twenty/releases/latest/download/n8n-nodes-twenty.tgz &&
+      npm install n8n-nodes-twenty.tgz &&
       cd /home/node &&
       n8n start"
     depends_on:
