@@ -6,3 +6,7 @@ shared/
 supabase/
 searxng/uwsgi.ini
 searxng/settings.yml
+.env.sv
+dropbox/sync_to_twenty.log
+dropbox/token.txt
+dropbox/twenty_token.txt

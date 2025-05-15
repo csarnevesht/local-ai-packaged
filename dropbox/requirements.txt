@@ -1,0 +1,6 @@
+dropbox==11.36.2
+requests==2.31.0
+PyPDF2==3.0.1
+pandas==2.2.3
+fpdf==1.7.2
+openpyxl==3.1.2 

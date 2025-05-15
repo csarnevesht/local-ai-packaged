@@ -113,6 +113,7 @@ services:
       -c "
       mkdir -p /home/node/.n8n/nodes &&
       cd /home/node/.n8n/nodes &&
+      rm -f n8n-nodes-twenty.tgz &&
       wget https://github.com/csarnevesht/n8n-nodes-twenty/releases/latest/download/n8n-nodes-twenty.tgz &&
       npm install n8n-nodes-twenty.tgz &&
       cd /home/node &&
