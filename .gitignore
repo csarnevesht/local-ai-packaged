@@ -10,3 +10,13 @@ searxng/settings.yml
 dropbox/sync_to_twenty.log
 dropbox/token.txt
 dropbox/twenty_token.txt
+
+# Additional sensitive files
+*.pem
+*.key
+*_token*
+*_secret*
+*_key*
+credentials*
+*_credentials*
+config.json
